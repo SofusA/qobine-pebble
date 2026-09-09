@@ -1,0 +1,39 @@
+{
+  "author": "Sofus Addington",
+  "dependencies": {},
+  "keywords": [
+    "music",
+    "remote",
+    "player",
+    "qobuz",
+    "qobine"
+  ],
+  "name": "qobine-remote",
+  "pebble": {
+    "displayName": "Qobine",
+    "enableMultiJS": true,
+    "messageKeys": [
+      "TITLE",
+      "ARTIST",
+      "ALBUM",
+      "POSITION_SECONDS",
+      "DURATION_SECONDS",
+      "IS_PLAYING",
+      "CONNECTION_STATE",
+      "COMMAND"
+    ],
+    "projectType": "native",
+    "resources": {
+      "media": []
+    },
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "flint"
+    ],
+    "uuid": "37e49d7a-8341-4a27-a7c7-98089537a426",
+    "watchapp": {
+      "watchface": false
+    }
+  },
+  "version": "1.0.0"
+}
