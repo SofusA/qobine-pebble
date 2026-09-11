@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Music Remote Settings</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f2f2f2;
+        color: #222;
+        font-family: sans-serif;
+      }
+
+      .settings {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 24px;
+        background: white;
+        border-radius: 12px;
+      }
+
+      h1 {
+        margin: 0 0 24px;
+        font-size: 24px;
+      }
+
+      label {
+        display: block;
+        margin-top: 18px;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+
+      input {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #bbb;
+        border-radius: 6px;
+        font-size: 16px;
+      }
+
+      button {
+        display: block;
+        width: 100%;
+        margin-top: 28px;
+        padding: 14px;
+        border: 0;
+        border-radius: 6px;
+        background: #111;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <form class="settings" id="settings-form">
+      <h1>Music Remote</h1>
+
+      <label for="server-url">Server URL</label>
+      <input
+        id="server-url"
+        type="url"
+        placeholder="https://example.com"
+        required
+      />
+
+      <label for="server-secret">Server secret</label>
+      <input id="server-secret" autocomplete="off" required />
+
+      <label for="device-id">Device ID</label>
+      <input id="device-id" type="text" value="pebble-watch" required />
+
+      <button type="submit">Save settings</button>
+    </form>
+
+    <script>
+      "use strict";
+
+      function readSettings() {
+        var query = window.location.search.substring(1);
+        var parts = query.split("&");
+
+        for (var i = 0; i < parts.length; i++) {
+          var item = parts[i].split("=");
+
+          if (item[0] === "settings" && item[1]) {
+            try {
+              return JSON.parse(decodeURIComponent(item.slice(1).join("=")));
+            } catch (error) {
+              return {};
+            }
+          }
+        }
+
+        return {};
+      }
+
+      var settings = readSettings();
+
+      document.getElementById("server-url").value = settings.serverUrl || "";
+
+      document.getElementById("server-secret").value =
+        settings.serverSecret || "";
+
+      document.getElementById("device-id").value =
+        settings.deviceId || "pebble-watch";
+
+      document
+        .getElementById("settings-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          var result = {
+            serverUrl: document.getElementById("server-url").value.trim(),
+
+            serverSecret: document.getElementById("server-secret").value,
+
+            deviceId: document.getElementById("device-id").value.trim(),
+          };
+
+          window.location.href =
+            "pebblejs://close#" + encodeURIComponent(JSON.stringify(result));
+        });
+    </script>
+  </body>
+</html>

@@ -2,12 +2,25 @@
 
 "use strict";
 
-/*
- * Server configuration
- */
-var SERVER_URL = "https://qobine-disconnect.iot-lab.dk";
-var SERVER_SECRET = "";
-var DEVICE_ID = "pebble-watch";
+var DEFAULT_SERVER_URL =
+  "https://qobine-disconnect.iot-lab.dk";
+
+var DEFAULT_SERVER_SECRET = "";
+var DEFAULT_DEVICE_ID = "pebble-watch";
+
+var SERVER_URL =
+  localStorage.getItem("serverUrl") ||
+  DEFAULT_SERVER_URL;
+
+var SERVER_SECRET =
+  localStorage.getItem("serverSecret") ||
+  DEFAULT_SERVER_SECRET;
+
+var DEVICE_ID =
+  localStorage.getItem("deviceId") ||
+  DEFAULT_DEVICE_ID;
+
+var CONFIG_URL =  "https://sofusa.github.io/qobine-pebble/pebble-config.html";
 
 /*
  * Polling configuration
@@ -68,6 +81,93 @@ Pebble.addEventListener("appmessage", function(event) {
 
   handleWatchCommand(Number(payload.COMMAND));
 });
+
+Pebble.addEventListener(
+  "showConfiguration",
+  function() {
+    var settings = {
+      serverUrl: SERVER_URL,
+      serverSecret: SERVER_SECRET,
+      deviceId: DEVICE_ID
+    };
+
+    Pebble.openURL(
+      CONFIG_URL +
+      "?settings=" +
+      encodeURIComponent(JSON.stringify(settings))
+    );
+  }
+);
+
+Pebble.addEventListener(
+  "webviewclosed",
+  function(event) {
+    if (!event || !event.response) {
+      return;
+    }
+
+    try {
+      var settings = JSON.parse(
+        decodeURIComponent(event.response)
+      );
+
+      SERVER_URL = normalizeServerUrl(
+        settings.serverUrl
+      );
+
+      SERVER_SECRET = String(
+        settings.serverSecret || ""
+      );
+
+      DEVICE_ID = String(
+        settings.deviceId || DEFAULT_DEVICE_ID
+      );
+
+      localStorage.setItem(
+        "serverUrl",
+        SERVER_URL
+      );
+
+      localStorage.setItem(
+        "serverSecret",
+        SERVER_SECRET
+      );
+
+      localStorage.setItem(
+        "deviceId",
+        DEVICE_ID
+      );
+
+      console.log("Settings saved");
+
+      if (stateRequest !== null) {
+        stateRequest.abort();
+        stateRequest = null;
+      }
+
+      isConnected = false;
+      startStatePolling();
+    } catch (error) {
+      console.log(
+        "Unable to read settings: " +
+        error.message
+      );
+    }
+  }
+);
+
+function normalizeServerUrl(value) {
+  var url = String(value || "").trim();
+
+  while (
+    url.length > 0 &&
+    url.charAt(url.length - 1) === "/"
+  ) {
+    url = url.substring(0, url.length - 1);
+  }
+
+  return url;
+}
 
 function startStatePolling() {
   stopStatePolling();

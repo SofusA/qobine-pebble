@@ -12,6 +12,9 @@
   "pebble": {
     "displayName": "Qobine",
     "enableMultiJS": true,
+    "capabilities": [
+      "configurable"
+    ],
     "messageKeys": [
       "TITLE",
       "ARTIST",
