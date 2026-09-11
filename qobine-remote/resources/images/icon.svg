@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="25"
+     height="25"
+     viewBox="10.5 5.5 79 109">
+  <g fill="none" stroke="currentColor" stroke-width="7">
+    <!-- Cabinet -->
+    <rect x="12" y="7" width="76" height="106" rx="2"/>
+
+    <!-- Tweeter -->
+    <circle cx="50" cy="30" r="10"/>
+
+    <!-- Woofer -->
+    <circle cx="50" cy="75" r="24"/>
+    <circle cx="50" cy="75" r="6"/>
+  </g>
+</svg>
