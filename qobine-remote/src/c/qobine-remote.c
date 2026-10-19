@@ -31,8 +31,10 @@ static uint32_t s_duration_seconds;
 
 static bool s_is_playing;
 
-static void update_time_text(void);
+static int16_t s_metadata_top_y;
+
 static void schedule_position_timer(void);
+static void update_metadata_layout(void);
 
 static void copy_tuple_string(
     Tuple *tuple,
@@ -427,6 +429,14 @@ static void inbox_received_handler(
     text_layer_set_text(s_album_layer, s_album);
   }
 
+  if (
+    title_tuple ||
+    artist_tuple ||
+    album_tuple
+  ) {
+    update_metadata_layout();
+  }
+
   if (position_tuple) {
     s_position_seconds =
         position_tuple->value->uint32;
@@ -518,10 +528,79 @@ static TextLayer *create_text_layer(
 
   text_layer_set_overflow_mode(
       layer,
-      GTextOverflowModeTrailingEllipsis
+      GTextOverflowModeWordWrap
   );
 
   return layer;
+}
+
+static void update_metadata_layout(void) {
+  if (
+    !s_title_layer ||
+    !s_artist_layer ||
+    !s_album_layer ||
+    !s_time_layer
+  ) {
+    return;
+  }
+
+  Layer *title_layer =
+      text_layer_get_layer(s_title_layer);
+
+  Layer *artist_layer =
+      text_layer_get_layer(s_artist_layer);
+
+  Layer *album_layer =
+      text_layer_get_layer(s_album_layer);
+
+  GRect title_frame = layer_get_frame(title_layer);
+  GRect artist_frame = layer_get_frame(artist_layer);
+  GRect album_frame = layer_get_frame(album_layer);
+
+  const int16_t maximum_row_height = 41;
+  const int16_t text_padding = 2;
+
+  int16_t title_height =
+      text_layer_get_content_size(s_title_layer).h +
+      text_padding;
+
+  int16_t artist_height =
+      text_layer_get_content_size(s_artist_layer).h +
+      text_padding;
+
+  int16_t album_height =
+      text_layer_get_content_size(s_album_layer).h +
+      text_padding;
+
+  if (title_height > maximum_row_height) {
+    title_height = maximum_row_height;
+  }
+
+  if (artist_height > maximum_row_height) {
+    artist_height = maximum_row_height;
+  }
+
+  if (album_height > maximum_row_height) {
+    album_height = maximum_row_height;
+  }
+
+  int16_t current_y = s_metadata_top_y;
+
+  title_frame.origin.y = current_y;
+  title_frame.size.h = title_height;
+  layer_set_frame(title_layer, title_frame);
+
+  current_y += title_height;
+
+  artist_frame.origin.y = current_y;
+  artist_frame.size.h = artist_height;
+  layer_set_frame(artist_layer, artist_frame);
+
+  current_y += artist_height;
+
+  album_frame.origin.y = current_y;
+  album_frame.size.h = album_height;
+  layer_set_frame(album_layer, album_frame);
 }
 
 static void main_window_load(Window *window) {
@@ -552,49 +631,52 @@ static void main_window_load(Window *window) {
       content_left -
       content_right_margin;
 
+  GFont metadata_font = fonts_get_system_font(
+      FONT_KEY_GOTHIC_18_BOLD
+  );
+
+  int16_t time_y = progress_y - 25;
+  int16_t metadata_height = time_y - title_y;
+
+  s_metadata_top_y = title_y;
+
   s_title_layer = create_text_layer(
       GRect(
           content_left,
           title_y,
           content_width,
-          28
+          metadata_height
       ),
-      fonts_get_system_font(
-          FONT_KEY_GOTHIC_24_BOLD
-      ),
+      metadata_font,
       GTextAlignmentCenter
   );
 
   s_artist_layer = create_text_layer(
       GRect(
           content_left,
-          title_y + 29,
+          title_y,
           content_width,
-          22
+          metadata_height
       ),
-      fonts_get_system_font(
-          FONT_KEY_GOTHIC_18_BOLD
-      ),
+      metadata_font,
       GTextAlignmentCenter
   );
 
   s_album_layer = create_text_layer(
       GRect(
           content_left,
-          title_y + 51,
+          title_y,
           content_width,
-          22
+          metadata_height
       ),
-      fonts_get_system_font(
-          FONT_KEY_GOTHIC_18
-      ),
+      metadata_font,
       GTextAlignmentCenter
   );
 
   s_time_layer = create_text_layer(
       GRect(
           content_left,
-          progress_y - 25,
+          time_y,
           content_width,
           24
       ),
@@ -636,6 +718,8 @@ static void main_window_load(Window *window) {
   text_layer_set_text(s_artist_layer, s_artist);
   text_layer_set_text(s_album_layer, s_album);
   text_layer_set_text(s_time_layer, s_time_text);
+
+  update_metadata_layout();
 
   layer_add_child(
       window_layer,
